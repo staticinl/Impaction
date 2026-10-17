@@ -65,7 +65,7 @@ Impaction maintains **two parallel build configurations**:
 | File | Build system | Intended for |
 |---|---|---|
 | `premake5.lua` | [Premake5](https://premake.github.io/) | **Visual Studio** on Windows |
-| `CMakeLists.txt` | [CMake](https://cmake.org/) | **CLion**, other CMake-aware editors, and CI / command-line builds |
+| `CMakeLists.txt` | [CMake](https://cmake.org/) | **CLion**, Neovim/clangd, other CMake-aware editors, and CI / command-line builds |
 
 **Rationale:** Premake's project generation produces a native, well-integrated experience specifically for Visual Studio, which is why it's kept for that workflow. CLion (and most other tooling, including most CI systems) is CMake-native, so CMake is used everywhere else. Rather than forcing a single generator to serve both IDEs equally poorly, each has its own first-class path.
 
@@ -86,8 +86,8 @@ If you edit `premake5.lua`, re-run the appropriate generation script (see [`scri
 Re-run the configure step:
 
 ```bash
-cmake -S . -B build
-cmake --build build
+cmake --preset debug
+cmake --build --preset debug
 ```
 
 CLion will typically pick up `CMakeLists.txt` changes automatically and prompt a re-sync.

@@ -43,10 +43,12 @@ namespace impct
 			// GLFW Terminate on system shutdown.
 			IMPCT_PROFILE_SCOPE("glfwInit");
 
-			int success = glfwInit();
-			IMPCT_CORE_ASSERT(success, "Could not initialize GLFW");
-
 			glfwSetErrorCallback(GLFWErrorCallback);
+			if (!glfwInit())
+			{
+				IMPCT_CORE_ERROR("Could not initialize GLFW");
+				return;
+			}
 
 			s_GLFWInitialized = true;
 		}
@@ -56,6 +58,12 @@ namespace impct
 
 			m_Window = glfwCreateWindow(static_cast<int>(props.Width), static_cast<int>(props.Height),
 				m_Data.Title.c_str(), nullptr, nullptr);
+		}
+
+		if (!m_Window)
+		{
+			IMPCT_CORE_ERROR("Could not create GLFW window");
+			return;
 		}
 
 		m_Context = new OpenGLContext(m_Window);
@@ -160,7 +168,8 @@ namespace impct
 	void LinuxWindow::Shutdown() 
 	{
 		IMPCT_PROFILE_FUNCTION();
-		glfwDestroyWindow(m_Window);
+		if (m_Window)
+			glfwDestroyWindow(m_Window);
 	}
 
 	void LinuxWindow::OnUpdate()

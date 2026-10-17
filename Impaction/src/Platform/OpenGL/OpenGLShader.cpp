@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <utility>
 
 namespace impct
 {
@@ -20,16 +21,16 @@ namespace impct
 	{
 		IMPCT_PROFILE_FUNCTION();
 
-		std::string source = ReadFile(filepath);
-		auto shaderSources = PreProcess(source);
+		const std::string source = ReadFile(filepath);
+		const auto shaderSources = PreProcess(source);
 		Compile(shaderSources);
 
-		std::filesystem::path path = filepath;
+		const std::filesystem::path path = filepath;
 		m_Name = path.stem().string();
 	}
 
-	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc)
-		:m_Name(name)
+	OpenGLShader::OpenGLShader(std::string name, const std::string& vertexSrc, const std::string& fragmentSrc)
+		:m_Name(std::move(name))
 	{
 		IMPCT_PROFILE_FUNCTION();
 
@@ -47,9 +48,8 @@ namespace impct
 		IMPCT_PROFILE_FUNCTION();
 
 		std::string result;
-		std::ifstream in(filepath, std::ios::in | std::ios::binary);
 
-		if (in)
+		if (std::ifstream in(filepath, std::ios::in | std::ios::binary); in)
 		{
 			in.seekg(0, std::ios::end);
 			result.resize(in.tellg());
@@ -71,20 +71,20 @@ namespace impct
 
 		const char* typeToken = "#type";
 
-		size_t typeTokenLength = strlen(typeToken);
+		const size_t typeTokenLength = strlen(typeToken);
 		size_t pos = source.find(typeToken, 0);
 
 		while (pos != std::string::npos)
 		{
-			size_t eol = source.find_first_of("\r\n", pos);
+			const size_t eol = source.find_first_of("\r\n", pos);
 			IMPCT_CORE_ASSERT(eol != std::string::npos, "Syntax Error!");
 
-			size_t begin = pos + typeTokenLength + 1;
+			const size_t begin = pos + typeTokenLength + 1;
 
 			std::string type = source.substr(begin, eol - begin);
 			IMPCT_CORE_ASSERT(ShaderTypeFromString(type), "Invalid Shader Type specification!");
 
-			size_t nextLinePos = source.find_first_not_of("\r\n", eol);
+			const size_t nextLinePos = source.find_first_not_of("\r\n", eol);
 			pos = source.find(typeToken, nextLinePos);
 
 			shaderSources[ShaderTypeFromString(type)] =
@@ -98,21 +98,21 @@ namespace impct
 	{
 		IMPCT_PROFILE_FUNCTION();
 
-		GLuint program = glCreateProgram();
+		const GLuint program = glCreateProgram();
 
 		IMPCT_CORE_ASSERT(shaderSources.size() < 3, "Only two shaders supported.");
 		std::array<GLenum, 2> glShaderIDs;
 		int glShaderIDIndex = 0;
 
-		for (auto& kv : shaderSources)
+		for (const auto&[fst, snd] : shaderSources)
 		{
-			GLenum type = kv.first;
-			const std::string& source = kv.second;
+			const GLenum type = fst;
+			const std::string& source = snd;
 
-			GLuint shader = glCreateShader(type);
+			const GLuint shader = glCreateShader(type);
 
 			const GLchar* sourceCStr = source.c_str();
-			glShaderSource(shader, 1, &sourceCStr, 0);
+			glShaderSource(shader, 1, &sourceCStr, nullptr);
 
 			glCompileShader(shader);
 
@@ -151,14 +151,14 @@ namespace impct
 			glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
 
 			glDeleteProgram(program);
-			for(auto id : glShaderIDs) glDeleteShader(id);
+			for (const auto id : glShaderIDs) glDeleteShader(id);
 
 			IMPCT_CORE_ERROR("{0}", infoLog.data());
-			IMPCT_CORE_ASSERT(false, "Shader link Faliure!");
+			IMPCT_CORE_ASSERT(false, "Shader link Failure!");
 			return;
 		}
 
-		for(auto id : glShaderIDs) glDetachShader(program, id);
+		for(const auto id : glShaderIDs) glDetachShader(program, id);
 
 		m_RendererID = program;
 	}
@@ -172,7 +172,7 @@ namespace impct
 		UploadUniformInt(name, value);
 	}
 
-	void OpenGLShader::SetIntArray(const std::string& name, const int* values, uint32_t count)
+	void OpenGLShader::SetIntArray(const std::string& name, const int* values, const uint32_t count)
 	{
 		IMPCT_PROFILE_FUNCTION();
 		UploadUniformIntArray(name, values, count);
@@ -202,65 +202,65 @@ namespace impct
 		UploadUniformMat4(name, value);
 	}
 
-	void OpenGLShader::UploadUniformInt(const std::string& name, const int value)
+	void OpenGLShader::UploadUniformInt(const std::string& name, const int value) const
 	{
-		GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+		const GLint location = glGetUniformLocation(m_RendererID, name.c_str());
 		IMPCT_CORE_ASSERT(location != -1, "{0} does not exist", name);
 
 		glUniform1i(location, value);
 	}
 
-	void OpenGLShader::UploadUniformFloat(const std::string& name, const float value)
+	void OpenGLShader::UploadUniformFloat(const std::string& name, const float value) const
 	{
-		GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+		const GLint location = glGetUniformLocation(m_RendererID, name.c_str());
 		IMPCT_CORE_ASSERT(location != -1, "{0} does not exist", name);
 
 		glUniform1f(location, value);
 	}
 
-	void OpenGLShader::UploadUniformIntArray(const std::string& name, const int* values, uint32_t count)
+	void OpenGLShader::UploadUniformIntArray(const std::string& name, const int* values, const uint32_t count) const
 	{
-		GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+		const GLint location = glGetUniformLocation(m_RendererID, name.c_str());
 		IMPCT_CORE_ASSERT(location != -1, "{0} does not exist", name);
 
-		glUniform1iv(location, count, values);
+		glUniform1iv(location, static_cast<int>(count), values);
 	}
 
-	void OpenGLShader::UploadUniformFloat2(const std::string& name, const glm::vec2& value)
+	void OpenGLShader::UploadUniformFloat2(const std::string& name, const glm::vec2& value) const
 	{
-		GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+		const GLint location = glGetUniformLocation(m_RendererID, name.c_str());
 		IMPCT_CORE_ASSERT(location != -1, "{0} does not exist", name);
 
 		glUniform2f(location, value.x, value.y);
 	}
 
-	void OpenGLShader::UploadUniformFloat3(const std::string& name, const glm::vec3& value)
+	void OpenGLShader::UploadUniformFloat3(const std::string& name, const glm::vec3& value) const
 	{
-		GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+		const GLint location = glGetUniformLocation(m_RendererID, name.c_str());
 		IMPCT_CORE_ASSERT(location != -1, "{0} does not exist", name);
 
 		glUniform3f(location, value.x, value.y, value.z);
 	}
 
-	void OpenGLShader::UploadUniformFloat4(const std::string& name, const glm::vec4& value)
+	void OpenGLShader::UploadUniformFloat4(const std::string& name, const glm::vec4& value) const
 	{
-		GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+		const GLint location = glGetUniformLocation(m_RendererID, name.c_str());
 		IMPCT_CORE_ASSERT(location != -1, "{0} does not exist", name);
 
 		glUniform4f(location, value.x, value.y, value.z, value.w);
 	}
 
-	void OpenGLShader::UploadUniformMat3(const std::string& name, const glm::mat3& matrix)
+	void OpenGLShader::UploadUniformMat3(const std::string& name, const glm::mat3& matrix) const
 	{
-		GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+		const GLint location = glGetUniformLocation(m_RendererID, name.c_str());
 		IMPCT_CORE_ASSERT(location != -1, "{0} does not exist", name);
 
 		glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
 	}
 
-	void OpenGLShader::UploadUniformMat4(const std::string& name, const glm::mat4& matrix)
+	void OpenGLShader::UploadUniformMat4(const std::string& name, const glm::mat4& matrix) const
 	{
-		GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+		const GLint location = glGetUniformLocation(m_RendererID, name.c_str());
 		IMPCT_CORE_ASSERT(location != -1, "{0} does not exist", name);
 
 		glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));

@@ -6,7 +6,7 @@
 namespace impct
 {
 
-	static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type)
+	static GLenum ShaderDataTypeToOpenGLBaseType(const ShaderDataType type)
 	{
 		switch (type)
 		{
@@ -21,6 +21,7 @@ namespace impct
 			case ShaderDataType::Int3:		return GL_INT;
 			case ShaderDataType::Int4:		return GL_INT;
 			case ShaderDataType::Bool:		return GL_BOOL;
+			case ShaderDataType::None:		break;
 		}
 
 		IMPCT_CORE_ASSERT(false, "Unknown ShaderDataType!");
@@ -37,7 +38,7 @@ namespace impct
 	{
 		IMPCT_PROFILE_FUNCTION();
 
-		IMPCT_CORE_ASSERT(vertexBuffer->GetLayout().GetElements().size(), "VertexBuffer has no layout!")
+		IMPCT_CORE_ASSERT(!vertexBuffer->GetLayout().GetElements().empty(), "VertexBuffer has no layout!")
 
 		glBindVertexArray(m_RendererID);
 		vertexBuffer->Bind();
@@ -50,10 +51,10 @@ namespace impct
 			glEnableVertexAttribArray(index);
 
 			glVertexAttribPointer(
-				index, element.GetComponentCount(),
+				index, static_cast<int>(element.GetComponentCount()),
 				ShaderDataTypeToOpenGLBaseType(element.Type),
 				element.Normalized ? GL_TRUE : GL_FALSE,
-				layout.GetStride(),
+				static_cast<int>(layout.GetStride()),
 				reinterpret_cast<const void*>(static_cast<uintptr_t>(element.Offset))
 			);
 

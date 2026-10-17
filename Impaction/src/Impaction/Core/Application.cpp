@@ -18,6 +18,13 @@ namespace impct
 		s_Instance = this;
 
 		m_Window = std::unique_ptr<Window>(Window::Create());
+		if (!m_Window || !m_Window->GetNativeWindow())
+		{
+			IMPCT_CORE_ERROR("Application cannot start without a valid window");
+			m_Running = false;
+			return;
+		}
+
 		m_Window->SetEventCallback(IMPCT_BIND_EVENT_FN(Application::OnEvent));
 		m_Window->SetVSync(true); //60 FPS
 
@@ -32,6 +39,11 @@ namespace impct
 	void Application::PushLayer(Layer* layer) 
 	{
 		IMPCT_PROFILE_FUNCTION();
+		if (!m_Running)
+		{
+			delete layer;
+			return;
+		}
 
 		m_LayerStack.PushLayer(layer);
 		layer->OnAttach();
@@ -40,6 +52,11 @@ namespace impct
 	void Application::PushOverlay(Layer* overlay) 
 	{
 		IMPCT_PROFILE_FUNCTION();
+		if (!m_Running)
+		{
+			delete overlay;
+			return;
+		}
 
 		m_LayerStack.PushOverlay(overlay);
 		overlay->OnAttach();

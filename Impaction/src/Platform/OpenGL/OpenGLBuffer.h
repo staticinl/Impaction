@@ -10,15 +10,16 @@ namespace impct
 	public:
 		OpenGLVertexBuffer(uint32_t size);
 		OpenGLVertexBuffer(const float* vertices, uint32_t size);
-		virtual ~OpenGLVertexBuffer();
 
-		virtual void Bind() const override;
-		virtual void Unbind() const override;
+		~OpenGLVertexBuffer() override;
 
-		virtual void SetData(const void* data, uint32_t size) override;
+		void Bind() const override;
+		void Unbind() const override;
 
-		inline virtual const BufferLayout& GetLayout() const override { return m_Layout; }
-		inline virtual void SetLayout(const BufferLayout& layout) override { m_Layout = layout; }
+		void SetData(const void* data, uint32_t size) override;
+
+		[[nodiscard]] inline const BufferLayout& GetLayout() const override { return m_Layout; }
+		inline void SetLayout(const BufferLayout& layout) override { m_Layout = layout; }
 
 	private:
 		uint32_t m_RendererID;
@@ -29,12 +30,12 @@ namespace impct
 	{
 	public:
 		OpenGLIndexBuffer(const uint32_t* indices, uint32_t count);
-		virtual ~OpenGLIndexBuffer();
+		~OpenGLIndexBuffer() override;
 
-		virtual void Bind() const;
-		virtual void Unbind() const;
+		void Bind() const override;
+		void Unbind() const override;
 
-		inline virtual uint32_t GetCount() const { return m_Count; }
+		[[nodiscard]] inline uint32_t GetCount() const override { return m_Count; }
 
 	private:
 		uint32_t m_RendererID;

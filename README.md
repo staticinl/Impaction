@@ -105,16 +105,38 @@ Both paths build from the same source tree — pick whichever matches your edito
 2. Open the generated `.sln` in Visual Studio and build.
 3. If you change `premake5.lua`, re-run the generation step and reload the solution before compiling.
 
-### Building with CMake (CLion / command line)
+### Building with CMake (CLion / Neovim / command line)
 
 ```bash
-cmake -S . -B build
-cmake --build build
+cmake --preset debug
+cmake --build --preset debug
 ```
 
-Or open the repository root directly in CLion — it will detect `CMakeLists.txt` and configure the project automatically.
+The repository includes [`CMakePresets.json`](CMakePresets.json), so the Debug build always writes its compile database to `build/debug/compile_commands.json`. Neovim's clangd configuration is provided in [`.clangd`](.clangd), which points clangd at that database for headers, includes, defines, and compiler flags.
+
+Open Neovim from the repository root after configuring the project. If you change the active configuration, configure the matching preset (`release` or `dist`) and update `.clangd`'s `CompilationDatabase` path accordingly.
+
+You can also open the repository root directly in CLion — it will detect `CMakeLists.txt` and configure the project automatically.
 
 > **Note:** If you edit the build configuration, keep both `premake5.lua` and `CMakeLists.txt` in sync where practical. Build-system-specific issues should be reported against the relevant file.
+
+### Portable build and run scripts
+
+For a command-line workflow that works on both Windows and Linux, use the Python scripts in [`scripts/`](scripts). They detect the platform and locate either `Sandbox` or `Sandbox.exe`, so no separate `.bat` or `.sh` build/run script is needed:
+
+```bash
+python scripts/build.py                 # Configure and build Debug
+python scripts/run.py                   # Run the Debug Sandbox
+python scripts/build_and_run.py         # Build, then run
+```
+
+Choose another configuration with `--config release` or `--config dist`. Arguments after `--` are passed to the application:
+
+```bash
+python scripts/build_and_run.py --config release -- --your-app-argument
+```
+
+Python 3.10 or newer and CMake must be available on `PATH`. The existing generator scripts remain available when you specifically want to generate Visual Studio or another IDE project.
 
 ## Project Structure
 
@@ -123,7 +145,7 @@ Impaction/
 ├── Impaction/            # Engine source (core, rendering, etc.)
 ├── Sandbox/               # Example / playground application using the engine
 ├── Resources/Branding/    # Logo and branding assets
-├── scripts/                # Project generation / setup scripts
+├── scripts/                # Project generation and portable build/run scripts
 ├── CMakeLists.txt          # CMake build configuration (CLion / cross-platform)
 ├── premake5.lua             # Premake build configuration (Visual Studio)
 ├── .gitmodules              # Third-party dependencies

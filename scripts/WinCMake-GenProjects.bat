@@ -1,5 +1,5 @@
 @echo off
 pushd ..\
-cmake -S . -B build
+cmake --preset debug
 popd
 PAUSE

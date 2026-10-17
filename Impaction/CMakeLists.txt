@@ -2,6 +2,15 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+
+# The supported Linux desktop environment is commonly Wayland (for example,
+# Hyprland).  GLFW defaults to X11 only, which makes glfwInit() fail on a
+# Wayland-only session even though the required Wayland development packages
+# are available.
+if(UNIX AND NOT APPLE)
+    set(GLFW_BUILD_WAYLAND ON CACHE BOOL "" FORCE)
+endif()
+
 add_subdirectory(vendor/GLFW)
 
 find_package(OpenGL REQUIRED)
@@ -10,7 +19,9 @@ file(GLOB_RECURSE IMPCT_SOURCES CONFIGURE_DEPENDS src/*.cpp)
 file(GLOB IMGUI_SOURCES CONFIGURE_DEPENDS vendor/imgui/*.cpp)
 file(GLOB STB_SOURCES CONFIGURE_DEPENDS vendor/stb_image/*.cpp)
 
-set(IMGUI_BACKENDS "")
+set(IMGUI_BACKENDS ""
+        src/Impaction/Renderer/SubTexture2D.h
+        src/Impaction/Renderer/SubTexture2D.cpp)
 foreach(f
         vendor/imgui/backends/imgui_impl_glfw.cpp
         vendor/imgui/backends/imgui_impl_opengl3.cpp)
