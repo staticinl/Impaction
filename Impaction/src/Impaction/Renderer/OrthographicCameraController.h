@@ -10,7 +10,14 @@
 
 namespace impct
 {
+	struct OrthographicCameraBounds
+	{
+		float Left, Right;
+		float Top, Bottom;
 
+		[[nodiscard]] inline float GetWidth() const { return Right - Left; }
+		[[nodiscard]] inline float GetHeight() const { return Top - Bottom; }
+	};
 	class OrthographicCameraController
 	{
 	public:
@@ -28,6 +35,8 @@ namespace impct
 		[[nodiscard]] inline float GetZoomPower() const { return m_ZoomPower; }
 		inline void SetZoomPower(const float zoomPower) { m_ZoomPower = zoomPower; }
 
+		[[nodiscard]] inline const OrthographicCameraBounds& GetBounds() const { return m_Bounds; }
+
 	private:
 		bool OnMouseScrolled(const MouseScrolledEvent& e);
 		bool OnWindowResized(const WindowResizeEvent& e);
@@ -35,6 +44,7 @@ namespace impct
 	private:
 		float m_AspectRatio;
 		float m_ZoomLevel = 1.0f, m_ZoomPower = 0.25f;
+		OrthographicCameraBounds m_Bounds;
 		OrthographicCamera m_Camera;
 
 		bool m_Rotation;

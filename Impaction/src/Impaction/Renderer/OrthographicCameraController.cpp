@@ -3,14 +3,13 @@
 #include "Impaction/Core/Input.h"
 #include "OrthographicCameraController.h"
 
-#include <cmath>
-
 namespace impct
 {
 
 	OrthographicCameraController::OrthographicCameraController(const float aspectRatio, const bool rotation)
 		: m_AspectRatio(aspectRatio),
-		  m_Camera(-m_AspectRatio * m_ZoomLevel, m_AspectRatio* m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel),
+		  m_Bounds({.Left = -m_AspectRatio * m_ZoomLevel, .Right = m_AspectRatio* m_ZoomLevel, .Top = -m_ZoomLevel, .Bottom = m_ZoomLevel} ),
+		  m_Camera(m_Bounds.Left, m_Bounds.Right, m_Bounds.Bottom, m_Bounds.Top),
 		  m_Rotation(rotation)
 	{
 	}
@@ -32,8 +31,8 @@ namespace impct
 			const float cameraRotation = glm::radians(m_CameraRotation);
 
 			cameraMovement = glm::vec2(
-				cameraMovement.x * cos(cameraRotation) - cameraMovement.y * sin(cameraRotation),
-				cameraMovement.x * sin(cameraRotation) + cameraMovement.y * cos(cameraRotation)
+				cameraMovement.x * glm::cos(cameraRotation) - cameraMovement.y * glm::sin(cameraRotation),
+				cameraMovement.x * glm::sin(cameraRotation) + cameraMovement.y * glm::cos(cameraRotation)
 			);
 		}
 
@@ -61,24 +60,26 @@ namespace impct
 		dispatcher.Dispatch<WindowResizeEvent> (IMPCT_BIND_EVENT_FN(OrthographicCameraController::OnWindowResized));
 	}
 
-	bool OrthographicCameraController::OnMouseScrolled(const MouseScrolledEvent& e)
-	{
+	bool OrthographicCameraController::OnMouseScrolled(const MouseScrolledEvent& e) {
 		IMPCT_PROFILE_FUNCTION();
 
-		m_ZoomPower = Input::IsKeyPressed(IMPCT_KEY_LEFT_CONTROL)? m_ZoomPower = 2.0f : m_ZoomPower = 0.25f;
+		m_ZoomPower = Input::IsKeyPressed(IMPCT_KEY_LEFT_CONTROL)? m_ZoomPower = 2.5f : m_ZoomPower = 0.25f;
 
 		m_ZoomLevel -= e.GetYOffset() * m_ZoomPower;
 		m_ZoomLevel = std::max(m_ZoomLevel, 0.25f);
-		m_Camera.SetProjection(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
+		m_Bounds = { .Left = -m_AspectRatio * m_ZoomLevel, .Right = m_AspectRatio * m_ZoomLevel, .Top = -m_ZoomLevel, .Bottom = m_ZoomLevel };
+		m_Camera.SetProjection(m_Bounds.Left, m_Bounds.Right, m_Bounds.Bottom, m_Bounds.Top);
+
 		return false;
 	}
 
-	bool OrthographicCameraController::OnWindowResized(const WindowResizeEvent& e)
-	{
+	bool OrthographicCameraController::OnWindowResized(const WindowResizeEvent& e) {
 		IMPCT_PROFILE_FUNCTION();
 
 		m_AspectRatio = static_cast<float>(e.GetWidth()) / static_cast<float>(e.GetHeight());
-		m_Camera.SetProjection(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
+		m_Bounds = { -m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel };
+		m_Camera.SetProjection(m_Bounds.Left, m_Bounds.Right, m_Bounds.Bottom, m_Bounds.Top);
+
 		return false;
 	}
 

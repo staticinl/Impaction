@@ -30,8 +30,8 @@ namespace impct
         virtual void Shutdown();
 
     private:
-        GLFWwindow* m_Window;
-        GraphicsContext* m_Context;
+        GLFWwindow* m_Window = nullptr;
+        GraphicsContext* m_Context = nullptr;
 
         struct WindowData
         {

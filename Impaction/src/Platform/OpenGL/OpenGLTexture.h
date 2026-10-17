@@ -11,18 +11,18 @@ namespace impct
 	public:
 		OpenGLTexture2D(uint32_t width, uint32_t height);
 		OpenGLTexture2D(const std::string& path);
-		virtual ~OpenGLTexture2D();
+		~OpenGLTexture2D() override;
 
-		inline virtual uint32_t GetWidth() const override { return m_Width; }
-		inline virtual uint32_t GetHeight() const override { return m_Height; }
+		[[nodiscard]] inline uint32_t GetWidth() const override { return m_Width; }
+		[[nodiscard]] inline uint32_t GetHeight() const override { return m_Height; }
 
-		virtual void SetData(void* data, uint32_t size) override;
+		void SetData(void* data, uint32_t size) override;
 
-		virtual void Bind(uint32_t slot = 0) const override;
+		void Bind(uint32_t slot = 0) const override;
 
-		virtual bool operator==(const Texture& other) const override 
+		bool operator==(const Texture& other) const override
 		{
-			return m_RendererID == (static_cast<const OpenGLTexture2D&>(other)).m_RendererID;
+			return m_RendererID == (dynamic_cast<const OpenGLTexture2D&>(other)).m_RendererID;
 		}
 
 	private:

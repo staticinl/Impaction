@@ -6,7 +6,7 @@
 
 namespace impct
 {
-    Input* Input::s_Instance = Input::Create();
+    Input* Input::s_Instance = Create();
 
     bool LinuxInput::IsKeyPressedImpl(const int keycode)
     {
@@ -18,8 +18,8 @@ namespace impct
 
     bool LinuxInput::IsMouseButtonPressedImpl(const int button)
     {
-        auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        auto state = glfwGetMouseButton(window, button);
+        const auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+        const auto state = glfwGetMouseButton(window, button);
 
         return state == GLFW_PRESS;
     }

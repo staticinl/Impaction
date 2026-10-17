@@ -12,3 +12,4 @@ bin-int/
 #Files
 *.user
 *.json
+!CMakePresets.json

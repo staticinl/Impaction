@@ -1,0 +1,4 @@
+# clangd is used by Neovim for C/C++ completion, diagnostics, and navigation.
+# Keep this aligned with the default Debug configure preset in CMakePresets.json.
+CompileFlags:
+  CompilationDatabase: build/debug
